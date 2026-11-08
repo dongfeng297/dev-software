@@ -5,7 +5,11 @@ Reserved operations return 501. A declared interface is not an implemented featu
 import copy
 import re
 
-VERSION = "1.0.0"
+from backnest import compress as _compress
+from backnest import container as _container
+from backnest import crypto as _crypto
+
+VERSION = "1.1.0"
 
 
 def obj(properties, required=()):
@@ -127,20 +131,37 @@ add("activity.export", "POST", "/activity/export", "gui", "导出后端操作日
 add("workspace.overview", "GET", "/workspace/overview", "gui", "获取后端统计")
 add("incremental.preview", "POST", "/incremental/preview", "other", "预留增量比较", "BackupRequest")
 
+# P4/P5/P6 extension ports that now have real implementations.
+IMPLEMENTED_EXTENSIONS = {
+    "archive.algorithms", "archive.pack", "archive.unpack", "archive.list",
+    "compression.algorithms", "compression.compress", "compression.decompress",
+    "encryption.algorithms", "encryption.encrypt", "encryption.decrypt",
+    "secrets.create", "secrets.revoke",
+    "tasks.list", "tasks.create", "tasks.update", "tasks.delete",
+    "schedules.list", "schedules.create", "schedules.update", "schedules.delete", "schedules.nextRuns",
+    "watchers.start", "watchers.get", "watchers.stop",
+    "incremental.preview", "settings.get", "settings.update",
+    "snapshots.list", "snapshots.register", "snapshots.delete",
+    "activity.list", "activity.export", "workspace.overview",
+}
+for _operation in OPERATIONS:
+    if _operation["id"] in IMPLEMENTED_EXTENSIONS:
+        _operation["implemented"] = True
+
 REQUIREMENTS = [
     {"id": "backup", "name": "目录树数据备份", "points": "基础共40分", "status": "implemented_basic"},
     {"id": "restore", "name": "目录树数据还原", "points": "基础共40分", "status": "implemented_basic"},
     {"id": "file_types", "name": "文件类型支持", "points": "满分10分", "status": "regular_files_and_directories_only"},
     {"id": "metadata", "name": "属主、时间、权限等元数据", "points": "满分10分", "status": "reserved"},
     {"id": "custom_backup", "name": "自定义备份：路径、类型、名字、时间、尺寸、用户", "points": "照片分值不清", "status": "reserved"},
-    {"id": "archive", "name": "打包解包", "points": "每种算法10分", "status": "reserved"},
-    {"id": "compression", "name": "压缩解压", "points": "每种算法10分", "status": "reserved"},
-    {"id": "encryption", "name": "加密解密", "points": "每种算法10分", "status": "reserved"},
+    {"id": "archive", "name": "打包解包", "points": "每种算法10分", "status": "implemented_self_bkn_archive_v1"},
+    {"id": "compression", "name": "压缩解压", "points": "每种算法10分", "status": "implemented_self_lzss_v1"},
+    {"id": "encryption", "name": "加密解密", "points": "每种算法10分", "status": "implemented_aes_256_gcm_library"},
     {"id": "gui", "name": "图形界面", "points": "满分10分", "status": "web_ui_implemented_qt_pending"},
-    {"id": "scheduled_backup", "name": "定时备份", "points": "满分10分", "status": "reserved"},
-    {"id": "realtime_backup", "name": "实时备份", "points": "满分15分", "status": "reserved"},
+    {"id": "scheduled_backup", "name": "定时备份", "points": "满分10分", "status": "implemented_in_process_cron"},
+    {"id": "realtime_backup", "name": "实时备份", "points": "满分15分", "status": "implemented_polling_debounce"},
     {"id": "network_backup", "name": "网络备份，含用户与元数据管理", "points": "具体而定，部分遮挡", "status": "reserved"},
-    {"id": "other", "name": "其他功能：增量、版本管理等", "points": "按难度讨论", "status": "versions_basic_other_reserved"},
+    {"id": "other", "name": "其他功能：增量、版本管理等", "points": "按难度讨论", "status": "incremental_implemented_hardlink"},
 ]
 
 # Persisted task options deliberately exclude ephemeral encryption secretRef.
@@ -213,10 +234,16 @@ def match_operation(method, path):
 
 def capabilities():
     return {"apiVersion": VERSION, "operations": copy.deepcopy(OPERATIONS), "requirements": copy.deepcopy(REQUIREMENTS),
-            "algorithms": {"archive": [], "compression": [], "encryption": [], "integrity": ["crc32-self-implemented"]},
+            "algorithms": {"archive": copy.deepcopy(_container.ALGORITHMS),
+                           "compression": copy.deepcopy(_compress.ALGORITHMS),
+                           "encryption": copy.deepcopy(_crypto.ALGORITHMS),
+                           "integrity": ["crc32-self-implemented"]},
             "algorithmPolicy": {"archive": "self_implemented_only", "compression": "self_implemented_only", "encryption": "libraries_allowed"},
             "supportedRestorePolicies": ["require_empty"],
-            "persistence": "browser_local_only", "platforms": {"macOS": "tested", "Windows": "build_entry_only_not_verified"}}
+            "automation": {"scheduler": "in_process_cron", "watcher": "polling_debounce",
+                           "incremental": "hardlink_or_copy", "runs_after_process_exit": False},
+            "persistence": "browser_local_and_backend_json_for_automation",
+            "platforms": {"macOS": "engine_entry_only_not_retested", "Windows": "tested_python_engine_and_features"}}
 
 
 def validate(value, schema, path="body"):
@@ -259,8 +286,6 @@ def unsupported_option(operation_id, body):
     """Never silently accept an unsupported policy and then run a plain backup."""
     if operation_id == "backup.start":
         options = body.get("options", {})
-        if options.get("mode", "full") != "full":
-            return "incremental.preview"
         checks = [("filters", "filters.preview"), ("metadata", "metadata.apply"), ("archive", "archive.pack"),
                   ("compression", "compression.compress"), ("encryption", "encryption.encrypt")]
         for key, capability in checks:

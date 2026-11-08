@@ -15,10 +15,15 @@ def build(force=False):
     BINARY.parent.mkdir(exist_ok=True)
     if os.name == "nt":
         compiler = shutil.which("cl")
-        if not compiler:
-            raise RuntimeError("Run from a Visual Studio Developer PowerShell with the C++ build tools installed.")
-        command = [compiler, "/nologo", "/std:c++17", "/EHsc", "/utf-8", "/W4", str(source),
-                   "/Fe:" + str(BINARY), "/Fo:" + str(BINARY.parent / "backnest.obj")]
+        if compiler:
+            command = [compiler, "/nologo", "/std:c++17", "/EHsc", "/utf-8", "/W4", str(source),
+                       "/Fe:" + str(BINARY), "/Fo:" + str(BINARY.parent / "backnest.obj")]
+        else:
+            compiler = shutil.which("g++") or shutil.which("clang++")
+            if not compiler:
+                raise RuntimeError("Run from a Visual Studio Developer PowerShell with the C++ build tools installed, "
+                                   "or put g++/clang++ on PATH.")
+            command = [compiler, "-std=c++17", "-O2", "-Wall", "-Wextra", "-Wpedantic", str(source), "-o", str(BINARY)]
     else:
         compiler = shutil.which("clang++") or shutil.which("g++")
         if not compiler:

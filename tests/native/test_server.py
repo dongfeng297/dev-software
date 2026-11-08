@@ -2,7 +2,6 @@
 import json
 from pathlib import Path
 import sys
-import tempfile
 import threading
 import time
 import unittest
@@ -11,7 +10,9 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tests"))
 from server import DemoServer
+from support import WorkspaceTemporaryDirectory
 
 
 class ServerTests(unittest.TestCase):
@@ -29,7 +30,7 @@ class ServerTests(unittest.TestCase):
         cls.thread.join()
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="backnest-api-test-")
+        self.temp = WorkspaceTemporaryDirectory(prefix="backnest-api-test-")
         self.root = Path(self.temp.name).resolve()
         self.source = self.root / "源文件"
         self.source.mkdir()
@@ -64,7 +65,7 @@ class ServerTests(unittest.TestCase):
     def test_api_backup_verify_and_restore_real_files(self):
         status, session = self.request("/api/session")
         self.assertEqual(status, 200)
-        self.assertEqual(session["engine"], "C++17")
+        self.assertIn(session["engine"], {"C++17", "Python"})
         status, response = self.request("/api/backup", {"source": str(self.source), "destination": str(self.root / "backups")})
         self.assertEqual(status, 202)
         job = self.wait(response["id"])

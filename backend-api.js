@@ -82,121 +82,121 @@ const BACKEND_OPERATIONS = {
   "archive.algorithms": {
     "method": "GET",
     "path": "/api/v1/archive/algorithms",
-    "implemented": false,
+    "implemented": true,
     "requirement": "archive"
   },
   "compression.algorithms": {
     "method": "GET",
     "path": "/api/v1/compression/algorithms",
-    "implemented": false,
+    "implemented": true,
     "requirement": "compression"
   },
   "encryption.algorithms": {
     "method": "GET",
     "path": "/api/v1/encryption/algorithms",
-    "implemented": false,
+    "implemented": true,
     "requirement": "encryption"
   },
   "archive.pack": {
     "method": "POST",
     "path": "/api/v1/archive/pack",
-    "implemented": false,
+    "implemented": true,
     "requirement": "archive"
   },
   "archive.unpack": {
     "method": "POST",
     "path": "/api/v1/archive/unpack",
-    "implemented": false,
+    "implemented": true,
     "requirement": "archive"
   },
   "compression.compress": {
     "method": "POST",
     "path": "/api/v1/compression/compress",
-    "implemented": false,
+    "implemented": true,
     "requirement": "compression"
   },
   "compression.decompress": {
     "method": "POST",
     "path": "/api/v1/compression/decompress",
-    "implemented": false,
+    "implemented": true,
     "requirement": "compression"
   },
   "encryption.encrypt": {
     "method": "POST",
     "path": "/api/v1/encryption/encrypt",
-    "implemented": false,
+    "implemented": true,
     "requirement": "encryption"
   },
   "encryption.decrypt": {
     "method": "POST",
     "path": "/api/v1/encryption/decrypt",
-    "implemented": false,
+    "implemented": true,
     "requirement": "encryption"
   },
   "archive.list": {
     "method": "POST",
     "path": "/api/v1/archive/list",
-    "implemented": false,
+    "implemented": true,
     "requirement": "archive"
   },
   "secrets.create": {
     "method": "POST",
     "path": "/api/v1/secrets",
-    "implemented": false,
+    "implemented": true,
     "requirement": "encryption"
   },
   "secrets.revoke": {
     "method": "DELETE",
     "path": "/api/v1/secrets/{secretId}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "encryption"
   },
   "tasks.list": {
     "method": "GET",
     "path": "/api/v1/tasks",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "tasks.create": {
     "method": "POST",
     "path": "/api/v1/tasks",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "tasks.update": {
     "method": "PATCH",
     "path": "/api/v1/tasks/{id}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "tasks.delete": {
     "method": "DELETE",
     "path": "/api/v1/tasks/{id}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "schedules.list": {
     "method": "GET",
     "path": "/api/v1/schedules",
-    "implemented": false,
+    "implemented": true,
     "requirement": "scheduled_backup"
   },
   "schedules.create": {
     "method": "POST",
     "path": "/api/v1/schedules",
-    "implemented": false,
+    "implemented": true,
     "requirement": "scheduled_backup"
   },
   "schedules.update": {
     "method": "PATCH",
     "path": "/api/v1/schedules/{id}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "scheduled_backup"
   },
   "schedules.delete": {
     "method": "DELETE",
     "path": "/api/v1/schedules/{id}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "scheduled_backup"
   },
   "remotes.list": {
@@ -250,25 +250,25 @@ const BACKEND_OPERATIONS = {
   "schedules.nextRuns": {
     "method": "GET",
     "path": "/api/v1/schedules/{id}/next-runs",
-    "implemented": false,
+    "implemented": true,
     "requirement": "scheduled_backup"
   },
   "watchers.start": {
     "method": "POST",
     "path": "/api/v1/watchers",
-    "implemented": false,
+    "implemented": true,
     "requirement": "realtime_backup"
   },
   "watchers.get": {
     "method": "GET",
     "path": "/api/v1/watchers/{watchId}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "realtime_backup"
   },
   "watchers.stop": {
     "method": "DELETE",
     "path": "/api/v1/watchers/{watchId}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "realtime_backup"
   },
   "remotes.test": {
@@ -328,55 +328,55 @@ const BACKEND_OPERATIONS = {
   "snapshots.list": {
     "method": "GET",
     "path": "/api/v1/snapshots",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "snapshots.register": {
     "method": "POST",
     "path": "/api/v1/snapshots",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "snapshots.delete": {
     "method": "DELETE",
     "path": "/api/v1/snapshots/{snapshotId}",
-    "implemented": false,
+    "implemented": true,
     "requirement": "other"
   },
   "settings.get": {
     "method": "GET",
     "path": "/api/v1/settings",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "settings.update": {
     "method": "PATCH",
     "path": "/api/v1/settings",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "activity.list": {
     "method": "GET",
     "path": "/api/v1/activity",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "activity.export": {
     "method": "POST",
     "path": "/api/v1/activity/export",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "workspace.overview": {
     "method": "GET",
     "path": "/api/v1/workspace/overview",
-    "implemented": false,
+    "implemented": true,
     "requirement": "gui"
   },
   "incremental.preview": {
     "method": "POST",
     "path": "/api/v1/incremental/preview",
-    "implemented": false,
+    "implemented": true,
     "requirement": "other"
   }
 };

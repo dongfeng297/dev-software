@@ -5,13 +5,14 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-import tempfile
 import unittest
 import zlib
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "tests"))
 from build import build
+from support import WorkspaceTemporaryDirectory
 
 
 def tree(path):
@@ -24,10 +25,13 @@ def tree(path):
 class EngineTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.binary = build()
+        try:
+            cls.binary = build()
+        except RuntimeError as error:
+            raise unittest.SkipTest(str(error))
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="backnest-test-")
+        self.temp = WorkspaceTemporaryDirectory(prefix="backnest-test-")
         self.root = Path(self.temp.name).resolve()
         self.source = self.root / "源目录 with spaces"
         self.source.mkdir()

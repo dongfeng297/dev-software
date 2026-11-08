@@ -16,6 +16,13 @@ function engineMessage(message){
   ['Cannot write file','无法写入文件，请检查目标目录的权限和可用空间。'],
   ['Write failed','写入失败，请检查目标磁盘是否已满或已断开。'],
   ['manifest','备份清单无效、损坏或不受支持。'],
+  ['Wrong password','密码错误，或文件已被篡改。'],
+  ['tampered','密码错误，或文件已被篡改。'],
+  ['secretRef','短期密码引用无效或已过期，请重新输入密码。'],
+  ['already exists','目标已存在，请换一个新路径。'],
+  ['new or empty directory','目标必须是新目录或空目录，不会覆盖已有文件。'],
+  ['maximum','内容超过允许的输出上限。'],
+  ['cron','定时表达式无效，请使用 5 个字段：分 时 日 月 周。'],
  ];
  return translations.find(([key])=>message.includes(key))?.[1]||message;
 }
@@ -28,7 +35,7 @@ async function connectNative(){
   const response=await fetch('/api/session',{cache:'no-store'});
   if(!response.ok)return;
   const session=await response.json();
-  if(session.engine!=='C++17')return;
+  if(!['C++17','Python'].includes(session.engine))return;
   const port=new BackNestBackend({token:session.token});
   const capabilities=await port.invoke('system.capabilities');
   backendApi=port;nativeSession={...session,capabilities};
@@ -122,7 +129,7 @@ async function importBackup(){
 async function openDirectoryPicker(kind,id,index){
  if(!nativeSession){toast('请先运行 python3 server.py 连接本机目录。');return}
  if(wizard)readWizard();
- const current=kind==='source'?wizard?.path:kind==='target'?wizard?.target:kind==='restore'?document.getElementById('restore-target')?.value:document.getElementById('import-path')?.value;
+ const current=kind==='source'?wizard?.path:kind==='target'?wizard?.target:kind==='restore'?document.getElementById('restore-target')?.value:kind==='input'?document.getElementById(id)?.value:document.getElementById('import-path')?.value;
  pickerContext={kind,id,index,previous:current};
  await showDirectories(current||nativeSession.workspace);
 }
@@ -140,6 +147,8 @@ function returnFromPicker(chosen){
  if(context.kind==='source'||context.kind==='target'){
   if(chosen){wizard[context.kind==='source'?'path':'target']=path;if(context.kind==='source'&&!wizard.name)wizard.name=path.split(/[\\/]/).filter(Boolean).at(-1)||'文件备份'}
   renderWizard();
+ }else if(context.kind==='input'){
+  if(chosen){const input=document.getElementById(context.id);if(input)input.value=path}
  }else if(context.kind==='restore')restoreModal(context.id,context.index,path);
  else openImportModal(path);
 }
@@ -154,6 +163,7 @@ document.addEventListener('click',event=>{
  if(action==='pick-target')openDirectoryPicker('target');
  if(action==='pick-restore')openDirectoryPicker('restore',id,Number(index));
  if(action==='pick-import')openDirectoryPicker('import');
+ if(action==='pick-input')openDirectoryPicker('input',id);
  if(action==='directory')showDirectories(path);
  if(action==='picker-cancel')returnFromPicker(false);
  if(action==='picker-select')returnFromPicker(true);

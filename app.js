@@ -35,8 +35,8 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const initial=createInitialState();
 let state=workspaceStore.loadLocal();
 workspaceStore.save(state);
-let view='overview',filter='all',query='',selected=state.tasks[0]?.id,mobileOpen=false,wizard=null,modal=null,lastFocus=null;
-const navs=[['overview','grid','总览'],['backups','folder','我的备份'],['restore','restore','数据还原'],['activity','activity','活动日志']];
+let view='overview',filter='all',query='',selected=state.tasks[0]?.id,mobileOpen=false,wizard=null,modal=null,lastFocus=null,extWatchId='';
+const navs=[['overview','grid','总览'],['backups','folder','我的备份'],['restore','restore','数据还原'],['extensions','archive','扩展能力'],['activity','activity','活动日志']];
 const persist=()=>workspaceStore.save(state);
 const getTask=id=>state.tasks.find(t=>t.id===id);
 const now=()=>new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date());
@@ -47,7 +47,7 @@ const textButton=(label,action)=>`<button class="text-btn" data-action="${action
 const button=(label,action,i='plus',cls='primary')=>`<button class="btn ${cls}" data-action="${action}">${icon(i)}${label}</button>`;
 const heading=(title,desc,action='new',label='新建备份',i='plus')=>`<div class="page-heading"><div><h1>${title}</h1><p class="subtext">${desc}</p></div>${action?button(label,action,i):''}</div>`;
 function render(){
- const title=navs.find(n=>n[0]===view)?.[2]||({settings:'偏好设置',plan:'项目说明'}[view]);
+ const title=navs.find(n=>n[0]===view)?.[2]||({settings:'偏好设置',plan:'项目说明',extensions:'扩展能力'}[view]);
  document.title=`${title} · 归档 BackNest`;
  document.getElementById('app').innerHTML=`
   <div class="mobile-overlay ${mobileOpen?'show':''}" data-action="menu"></div>
@@ -61,8 +61,8 @@ function render(){
      <div class="workspace-info">${icon('monitor')}<div><strong>本地工作区</strong><small>数据保存在当前浏览器</small></div></div>
     </div>
    </aside>
-   <header class="topbar"><div class="breadcrumb"><button class="icon-btn mobile-menu" aria-label="打开导航" data-action="menu">${icon('menu')}</button><span>本地工作区</span>${icon('chevron')}<span>${title}</span></div><div class="top-actions"><span class="prototype ${nativeSession?'connected':''}"><i></i>${nativeBusy?'正在执行':nativeSession?'本机引擎 · C++':'未连接引擎'}</span><button class="help-button" data-view="activity">${icon('activity')}<span>查看日志</span></button></div></header>
-   <main class="content" id="main-content">${({overview,backups,restore:restoreView,schedules,activity,settings,plan}[view]||overview)()}<footer class="footer"><span>${nativeSession?'基础版 · 完整备份与还原':'运行 python3 server.py 后连接本机功能'}</span><span>归档 0.2</span></footer></main>
+   <header class="topbar"><div class="breadcrumb"><button class="icon-btn mobile-menu" aria-label="打开导航" data-action="menu">${icon('menu')}</button><span>本地工作区</span>${icon('chevron')}<span>${title}</span></div><div class="top-actions"><span class="prototype ${nativeSession?'connected':''}"><i></i>${nativeBusy?'正在执行':nativeSession?`本机引擎 · ${nativeSession.engine}`:'未连接引擎'}</span><button class="help-button" data-view="activity">${icon('activity')}<span>查看日志</span></button></div></header>
+   <main class="content" id="main-content">${({overview,backups,restore:restoreView,schedules,activity,settings,plan,extensions}[view]||overview)()}<footer class="footer"><span>${nativeSession?`本机引擎 · ${nativeSession.engine}`:'运行 python3 server.py 后连接本机功能'}</span><span>归档 0.3</span></footer></main>
   </div>`;
 }
 function overview(){
@@ -88,7 +88,116 @@ function schedules(){const tasks=state.tasks.filter(t=>t.schedule!=='手动备�
 function activity(){return `${heading('活动日志','查看备份、还原与任务配置的操作记录。','export','导出日志','download')}<section class="panel"><div class="panel-head"><h2>活动记录</h2><span class="subtext">${state.logs.length} 条记录</span></div><div class="log-list">${state.logs.map(l=>`<div class="log"><div class="activity-icon">${icon(l.level==='success'?'check':l.level==='warning'?'info':'activity')}</div><div><strong>${esc(l.title)}</strong><small>${esc(l.detail)}</small></div><time>${esc(l.time)}</time></div>`).join('')||'<div class="empty">暂无活动记录</div>'}</div></section>`}
 function settings(){const s=state.settings;return `${heading('偏好设置','设置新任务的默认选项。','save-settings','保存设置','check')}<div class="settings"><section class="panel settings-section"><h2>备份默认设置</h2><div class="settings-row"><div><strong>默认备份位置</strong><small>新建任务时默认填写的目标目录</small></div><input id="setting-target" value="${esc(s.target)}" placeholder="未设置" aria-label="默认备份位置"></div><div class="settings-row"><div><strong>文件校验</strong><small>备份与还原都会检查文件内容；校验通过后才报告完成</small></div><span class="subtext">始终开启</span></div><div class="settings-row"><div><strong>版本保留</strong><small>基础版保留所有备份版本，不自动删除磁盘上的备份</small></div><span class="subtext">全部保留</span><input id="setting-keep" type="hidden" value="${s.keep}"></div></section><section class="panel settings-section"><h2>本地配置</h2><div class="settings-row"><div><strong>清空界面记录</strong><small>清空任务与界面日志；已经生成的磁盘备份会保留，可重新导入</small></div><button class="btn small danger" data-action="reset">清空本地数据</button></div></section></div>`}
 function settingSwitch(key,title,desc){return `<div class="settings-row"><div><strong>${title}</strong><small>${desc}</small></div><button class="switch ${state.settings[key]?'on':''}" data-setting="${key}" role="switch" aria-checked="${state.settings[key]}" aria-label="${title}"></button></div>`}
-function plan(){return `${heading('项目说明','根据实验要求拆解：先完成基础闭环，再逐步增加扩展能力。',null)}<div class="notice">${icon('code')}当前：Web UI + 本地通信桥 + C++17 备份引擎。后续可接入 Qt 桌面窗口。实现说明见 README.md。</div><div class="plan-grid">${[['01','界面与操作流程','已完成 · 本机 demo',['总览、备份与版本列表','三步创建与还原确认','任务配置、偏好与活动日志','浏览器持久化任务配置']],['02','本机备份与还原','已完成 · 基础要求',['目录递归遍历与复制','目录树重建与数据还原','路径校验与失败处理','备份清单与 CRC32 内容校验']],['03','扩展功能','后续阶段 · 按难度递进',['自定义备份（六类筛选）与元数据支持','打包、压缩、加密','定时调度与实时监听','增量备份与网络传输']]].map(([n,t,d,items])=>`<section class="panel plan-card"><div class="plan-number">${n}</div><h2>${t}</h2><p>${d}</p><ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul></section>`).join('')}</div>`}
+function plan(){return `${heading('项目说明','根据实验要求拆解：基础闭环已完成，扩展能力按 P4–P6 落地。',null)}<div class="notice">${icon('code')}当前：Web UI + 本地通信桥 + C++17 引擎（无编译器时使用兼容 Python 引擎）。实现说明见 README.md 与 docs/FEATURES_P4_P6.md。</div><div class="plan-grid">${[['01','界面与操作流程','已完成 · 本机 demo',['总览、备份与版本列表','三步创建与还原确认','扩展能力页：打包/压缩/加密/自动化','浏览器与后端配置持久化']],['02','本机备份与还原','已完成 · 基础要求',['目录递归遍历与复制','目录树重建与数据还原','路径校验与失败处理','备份清单与 CRC32 内容校验']],['03','扩展功能','P4–P6 已实现 · 其余待开发',['自实现 BNAR 容器与 LZSS 压缩','AES-256-GCM 认证加密与短期 secretRef','定时 cron、实时去抖监听','增量备份（硬链接）与独立版本']]].map(([n,t,d,items])=>`<section class="panel plan-card"><div class="plan-number">${n}</div><h2>${t}</h2><p>${d}</p><ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul></section>`).join('')}</div>`}
+function extensions(){
+ const engine=nativeSession?nativeSession.engine:'未连接';
+ setTimeout(refreshExtensionSchedules,0);
+ return `${heading('扩展能力','P4 打包/压缩 · P5 加密 · P6 定时/实时/增量。所有结果都来自真实文件操作。',null)}
+  <div class="notice">${icon('info')}当前引擎：${esc(engine)}。密码只在内存中换取短期 secretRef，不会写入任务记录、日志或浏览器存储。</div>
+  <div class="plan-grid">
+   <section class="panel plan-card"><div class="plan-number">P4 · 自实现容器与压缩</div><h2>打包与压缩</h2><p>BNAR 单文件容器与 LZSS 分块压缩均由项目代码实现，目标文件必须不存在。</p>
+    <div class="field"><label for="ext-arc-source">源目录</label><div class="input-with-button"><input id="ext-arc-source" placeholder="绝对路径"><button class="btn" data-native="pick-input" data-id="ext-arc-source">浏览</button></div></div>
+    <div class="field"><label for="ext-arc-file">归档文件</label><input id="ext-arc-file" placeholder="…/bundle.bkn"></div>
+    <div class="inline-actions"><button class="btn primary" data-action="ext-pack">打包</button></div>
+    <div class="field"><label for="ext-arc-out">解包到目录</label><div class="input-with-button"><input id="ext-arc-out" placeholder="新目录或空目录"><button class="btn" data-native="pick-input" data-id="ext-arc-out">浏览</button></div></div>
+    <div class="inline-actions"><button class="btn" data-action="ext-unpack">解包</button></div>
+    <div class="field"><label for="ext-cmp-source">压缩源文件</label><input id="ext-cmp-source" placeholder="任意普通文件"></div>
+    <div class="field"><label for="ext-cmp-file">压缩/解压目标文件</label><input id="ext-cmp-file" placeholder="…/data.lz"></div>
+    <div class="inline-actions"><button class="btn" data-action="ext-compress">压缩</button><button class="btn" data-action="ext-decompress">解压</button></div>
+   </section>
+   <section class="panel plan-card"><div class="plan-number">P5 · 加密</div><h2>认证加密</h2><p>AES-256-GCM + PBKDF2-HMAC-SHA256；正确密码可还原，错误密码或篡改会明确失败。</p>
+    <div class="field"><label for="ext-enc-source">源文件</label><input id="ext-enc-source" placeholder="明文或密文文件"></div>
+    <div class="field"><label for="ext-enc-file">目标文件</label><input id="ext-enc-file" placeholder="…/secret.bne"></div>
+    <div class="field"><label for="ext-enc-password">密码</label><input id="ext-enc-password" type="password" autocomplete="off" placeholder="仅本次使用"></div>
+    <div class="inline-actions"><button class="btn primary" data-action="ext-encrypt">加密</button><button class="btn" data-action="ext-decrypt">解密</button></div>
+    <div class="notice">${icon('lock')}加密完成或失败后密码输入框会清空，secretRef 会立即撤销。</div>
+   </section>
+   <section class="panel plan-card"><div class="plan-number">P6 · 自动化与增量</div><h2>定时、实时与增量</h2><p>增量备份对未变文件使用硬链接，保留的每个版本都可独立还原；计划只在服务进程运行期间执行。</p>
+    <div class="field"><label for="ext-source">源目录</label><div class="input-with-button"><input id="ext-source" placeholder="绝对路径"><button class="btn" data-native="pick-input" data-id="ext-source">浏览</button></div></div>
+    <div class="field"><label for="ext-destination">备份位置</label><div class="input-with-button"><input id="ext-destination" placeholder="独立的新目录"><button class="btn" data-native="pick-input" data-id="ext-destination">浏览</button></div></div>
+    <div class="two-fields"><div class="field"><label for="ext-cron">定时表达式</label><input id="ext-cron" value="*/5 * * * *"></div><div class="field"><label for="ext-tz">时区</label><input id="ext-tz" value="Asia/Shanghai"></div></div>
+    <div class="inline-actions"><button class="btn" data-action="ext-preview">增量预览</button><button class="btn primary" data-action="ext-schedule">创建定时计划</button></div>
+    <div class="inline-actions"><button class="btn" data-action="ext-watch">开始实时监听</button><button class="btn" data-action="ext-watch-stop">停止监听</button></div>
+    <div id="ext-status" class="notice">${icon('clock')}填写源目录和备份位置后，可先预览增量，再创建计划或监听。</div>
+   </section>
+  </div>
+  <section class="panel settings-section"><div class="panel-head"><h2>后端定时计划</h2><span class="subtext">仅在 server.py 运行期间生效；进程退出后不会在后台继续执行</span></div><div id="ext-schedules" class="recent-logs"><p class="subtext">正在读取…</p></div></section>`;
+}
+function extStatus(message){const node=document.getElementById('ext-status');if(node)node.innerHTML=`${icon('info')}${esc(message)}`}
+function extValue(id){return document.getElementById(id)?.value.trim()||''}
+async function refreshExtensionSchedules(){
+ if(!nativeSession||view!=='extensions')return;
+ try{
+  const list=await nativeRequest('schedules.list');
+  const node=document.getElementById('ext-schedules');if(!node)return;
+  node.innerHTML=list.length?list.map(item=>`<div class="recent-log"><span class="log-mark">${icon('clock')}</span><div><strong>${esc(item.expression)} · ${esc(item.timezone)}</strong><small>${item.enabled?'已启用':'已暂停'} · 下次 ${esc(item.nextRunAt?localTime(item.nextRunAt):'—')} · ${esc(item.taskId)}</small></div><button class="btn small danger" data-action="ext-schedule-delete" data-id="${esc(item.id)}">删除</button></div>`).join(''):'<p class="subtext" style="padding:10px 0">暂无后端定时计划。</p>';
+ }catch(error){const node=document.getElementById('ext-schedules');if(node)node.innerHTML=`<p class="subtext">${esc(error.message)}</p>`}
+}
+async function extensionJob(operation,body,label){
+ if(!nativeSession){toast('请先运行 python3 server.py。');return null}
+ if(nativeBusy){toast('已有文件操作正在运行，请等待完成。');return null}
+ nativeBusy=true;extStatus(`${label}：正在执行…`);
+ try{
+  const accepted=await nativeRequest(operation,{body});
+  const result=await pollNativeJob(accepted.id,job=>extStatus(`${label}：${job.phase||'running'} · ${job.files}/${job.totalFiles} 个文件`));
+  log(`${label}完成`,`${result.files} 个文件 · ${formatSize(result.bytes)} · ${result.path}`,'success');
+  toast(`${label}完成。`);extStatus(`${label}完成：${result.path}`);return result;
+ }catch(error){log(`${label}失败`,error.message,'warning');toast(error.message);extStatus(`${label}失败：${error.message}`);return null}
+ finally{nativeBusy=false}
+}
+async function extensionEncrypt(decrypt){
+ const source=extValue('ext-enc-source'),destination=extValue('ext-enc-file'),password=document.getElementById('ext-enc-password')?.value||'';
+ if(!source||!destination||!password){toast('请填写源文件、目标文件和密码。');return}
+ if(nativeBusy){toast('已有文件操作正在运行，请等待完成。');return}
+ nativeBusy=true;extStatus(`${decrypt?'解密':'加密'}：正在创建短期 secretRef…`);
+ let reference='';
+ try{
+  const secret=await nativeRequest('secrets.create',{body:{value:password,purpose:'encryption'}});reference=secret.secretRef;
+  const accepted=await nativeRequest(decrypt?'encryption.decrypt':'encryption.encrypt',{body:{source,destination,options:{algorithm:'aes-256-gcm'},secretRef:reference}});
+  const result=await pollNativeJob(accepted.id,job=>extStatus(`${decrypt?'解密':'加密'}：${job.phase||'running'} · ${job.bytes}/${job.totalBytes} 字节`));
+  log(`${decrypt?'解密':'加密'}完成`,`${result.path} · ${formatSize(result.bytes)}`,'success');toast(`${decrypt?'解密':'加密'}完成。`);extStatus(`${decrypt?'解密':'加密'}完成：${result.path}`);
+ }catch(error){log(`${decrypt?'解密':'加密'}失败`,error.message,'warning');toast(error.message);extStatus(`${decrypt?'解密':'加密'}失败：${error.message}`)}
+ finally{
+  if(reference)await nativeRequest('secrets.revoke',{path:{secretId:reference}}).catch(()=>{});
+  const input=document.getElementById('ext-enc-password');if(input)input.value='';
+  nativeBusy=false;
+ }
+}
+async function extensionPreview(){
+ const source=extValue('ext-source'),destination=extValue('ext-destination');
+ if(!source||!destination){toast('请填写源目录和备份位置。');return}
+ try{
+  const preview=await nativeRequest('incremental.preview',{body:{source,destination}});
+  const text=`增量预览：新增 ${preview.added.length} · 变更 ${preview.changed.length} · 删除 ${preview.deleted.length}（基准 ${preview.baseSnapshotId||'无，首次为全量'}）`;
+  extStatus(text);log('增量预览',text);toast(text);
+ }catch(error){toast(error.message);extStatus(error.message)}
+}
+async function extensionTask(){
+ const source=extValue('ext-source'),destination=extValue('ext-destination');
+ if(!source||!destination)throw Error('请填写源目录和备份位置。');
+ return await nativeRequest('tasks.create',{body:{name:`扩展任务 ${now()}`,source,destination,options:{mode:'incremental'}}});
+}
+async function extensionSchedule(){
+ if(!nativeSession){toast('请先运行 python3 server.py。');return}
+ try{
+  const task=await extensionTask();
+  const schedule=await nativeRequest('schedules.create',{body:{taskId:task.id,timezone:extValue('ext-tz')||'Asia/Shanghai',expression:extValue('ext-cron')||'*/5 * * * *',enabled:true,missedRunPolicy:'skip'}});
+  extStatus(`定时计划已创建：${schedule.expression} · 下次 ${localTime(schedule.nextRunAt)}`);toast('定时计划已创建。');refreshExtensionSchedules();
+ }catch(error){toast(error.message);extStatus(error.message)}
+}
+async function extensionWatch(){
+ if(!nativeSession){toast('请先运行 python3 server.py。');return}
+ try{
+  const task=await extensionTask();
+  const watch=await nativeRequest('watchers.start',{body:{taskId:task.id,source:extValue('ext-source'),debounceMs:500}});
+  extWatchId=watch.id;extStatus(`实时监听已启动：${watch.id} · 去抖 500 ms`);toast('实时监听已启动。');
+ }catch(error){toast(error.message);extStatus(error.message)}
+}
+async function extensionWatchStop(){
+ if(!extWatchId){toast('当前没有已启动的监听。');return}
+ try{await nativeRequest('watchers.stop',{path:{watchId:extWatchId}});extStatus(`实时监听已停止：${extWatchId}`);extWatchId='';toast('监听已停止。')}
+ catch(error){toast(error.message);extStatus(error.message)}
+}
 function navigate(v){view=v;mobileOpen=false;query='';render();window.scrollTo({top:0,behavior:'instant'})}
 function toast(msg){document.getElementById('toast-root').innerHTML=`<div class="toast" role="status">${icon('info')}${esc(msg)}</div>`;clearTimeout(toast.timer);toast.timer=setTimeout(()=>{document.getElementById('toast-root').innerHTML=''},4200)}
 function log(title,detail,level='info'){state.logs.unshift({title,detail,level,time:`今天 ${now()}`});state.logs=state.logs.slice(0,100)}
@@ -125,6 +234,17 @@ document.addEventListener('click',e=>{
  const option=e.target.closest('[data-wizard-option]');if(option&&wizard){readWizard();wizard[option.dataset.wizardOption]=!wizard[option.dataset.wizardOption];renderWizard();return}
  const el=e.target.closest('[data-action]');if(!el)return;const {action,id}=el.dataset;
  if(action==='backdrop'){if(e.target===el)closeModal();return}
+ if(action==='ext-pack'){extensionJob('archive.pack',{source:extValue('ext-arc-source'),destination:extValue('ext-arc-file'),options:{algorithm:'bkn-archive-v1'}},'打包');return}
+ if(action==='ext-unpack'){extensionJob('archive.unpack',{source:extValue('ext-arc-file'),destination:extValue('ext-arc-out'),options:{algorithm:'bkn-archive-v1'}},'解包');return}
+ if(action==='ext-compress'){extensionJob('compression.compress',{source:extValue('ext-cmp-source'),destination:extValue('ext-cmp-file'),options:{algorithm:'lzss-v1','blockBytes':65536}},'压缩');return}
+ if(action==='ext-decompress'){extensionJob('compression.decompress',{source:extValue('ext-cmp-source'),destination:extValue('ext-cmp-file'),options:{algorithm:'lzss-v1'}},'解压');return}
+ if(action==='ext-encrypt'){extensionEncrypt(false);return}
+ if(action==='ext-decrypt'){extensionEncrypt(true);return}
+ if(action==='ext-preview'){extensionPreview();return}
+ if(action==='ext-schedule'){extensionSchedule();return}
+ if(action==='ext-watch'){extensionWatch();return}
+ if(action==='ext-watch-stop'){extensionWatchStop();return}
+ if(action==='ext-schedule-delete'){nativeRequest('schedules.delete',{path:{id}}).then(()=>{toast('计划已删除。');refreshExtensionSchedules()}).catch(error=>toast(error.message));return}
  if(action==='close'){closeModal();return}
  if(action==='menu'){mobileOpen=!mobileOpen;render();return}
  if(action.startsWith('goto-')){navigate(action.slice(5));return}

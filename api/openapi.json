@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BackNest Backend Contract",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Reserved routes return 501, never simulated success. Archive/compression algorithms must be self-implemented; crypto libraries are allowed."
   },
   "servers": [
@@ -1026,7 +1026,7 @@
         "tags": [
           "archive"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "archive",
         "security": [
           {
@@ -1095,7 +1095,7 @@
         "tags": [
           "compression"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "compression",
         "security": [
           {
@@ -1164,7 +1164,7 @@
         "tags": [
           "encryption"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "encryption",
         "security": [
           {
@@ -1233,7 +1233,7 @@
         "tags": [
           "archive"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "archive",
         "security": [
           {
@@ -1312,7 +1312,7 @@
         "tags": [
           "archive"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "archive",
         "security": [
           {
@@ -1391,7 +1391,7 @@
         "tags": [
           "compression"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "compression",
         "security": [
           {
@@ -1470,7 +1470,7 @@
         "tags": [
           "compression"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "compression",
         "security": [
           {
@@ -1549,7 +1549,7 @@
         "tags": [
           "encryption"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "encryption",
         "security": [
           {
@@ -1628,7 +1628,7 @@
         "tags": [
           "encryption"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "encryption",
         "security": [
           {
@@ -1707,7 +1707,7 @@
         "tags": [
           "archive"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "archive",
         "security": [
           {
@@ -1786,7 +1786,7 @@
         "tags": [
           "encryption"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "encryption",
         "security": [
           {
@@ -1865,7 +1865,7 @@
         "tags": [
           "encryption"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "encryption",
         "security": [
           {
@@ -1944,7 +1944,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -2011,7 +2011,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -2090,7 +2090,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -2177,7 +2177,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -2256,7 +2256,7 @@
         "tags": [
           "scheduled_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "scheduled_backup",
         "security": [
           {
@@ -2323,7 +2323,7 @@
         "tags": [
           "scheduled_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "scheduled_backup",
         "security": [
           {
@@ -2402,7 +2402,7 @@
         "tags": [
           "scheduled_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "scheduled_backup",
         "security": [
           {
@@ -2489,7 +2489,7 @@
         "tags": [
           "scheduled_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "scheduled_backup",
         "security": [
           {
@@ -3192,7 +3192,7 @@
         "tags": [
           "scheduled_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "scheduled_backup",
         "security": [
           {
@@ -3271,7 +3271,7 @@
         "tags": [
           "realtime_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "realtime_backup",
         "security": [
           {
@@ -3350,7 +3350,7 @@
         "tags": [
           "realtime_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "realtime_backup",
         "security": [
           {
@@ -3427,7 +3427,7 @@
         "tags": [
           "realtime_backup"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "realtime_backup",
         "security": [
           {
@@ -4261,7 +4261,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4328,7 +4328,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4407,7 +4407,7 @@
         "tags": [
           "other"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "other",
         "security": [
           {
@@ -4486,7 +4486,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4553,7 +4553,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4632,7 +4632,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4701,7 +4701,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4770,7 +4770,7 @@
         "tags": [
           "gui"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "gui",
         "security": [
           {
@@ -4839,7 +4839,7 @@
         "tags": [
           "other"
         ],
-        "x-implemented": false,
+        "x-implemented": true,
         "x-requirement": "other",
         "security": [
           {
